@@ -10,12 +10,16 @@ angular.module('ui.bootstrap.timepicker', [])
 })
 
 .controller('TimepickerController', ['$scope', '$attrs', '$parse', '$log', '$locale', 'timepickerConfig', function($scope, $attrs, $parse, $log, $locale, timepickerConfig) {
-  var selected = new Date(),
+  var selected,
       ngModelCtrl = { $setViewValue: angular.noop }, // nullModelCtrl
       meridians = angular.isDefined($attrs.meridians) ? $scope.$parent.$eval($attrs.meridians) : timepickerConfig.meridians || $locale.DATETIME_FORMATS.AMPMS;
 
   this.init = function( ngModelCtrl_, inputs ) {
     ngModelCtrl = ngModelCtrl_;
+
+    // if a date is passed via ng-model update "selected", otherwise, use now
+    selected = ngModelCtrl.$modelValue instanceof Date ? ngModelCtrl.$modelValue : new Date();
+
     ngModelCtrl.$render = this.render;
 
     var hoursInputEl = inputs.eq(0),
