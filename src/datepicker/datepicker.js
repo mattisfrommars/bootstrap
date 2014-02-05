@@ -124,7 +124,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.position'])
 
   this.hasHighlightedRange = function(){
     return this.highlightedRangeStarts && this.highlightedRangeEnds;
-  }
+  };
 
   this.isInHighlightedRange = function( date ) {
     return (
