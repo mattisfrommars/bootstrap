@@ -121,6 +121,17 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.position'])
     var currentMode = this.modes[mode || 0];
     return ((this.minDate && currentMode.compare(date, this.minDate) < 0) || (this.maxDate && currentMode.compare(date, this.maxDate) > 0) || ($scope.dateDisabled && $scope.dateDisabled({date: date, mode: currentMode.name})));
   };
+
+  this.hasHighlightedRange = function(){
+    return this.highlightedRangeStarts && this.highlightedRangeEnds;
+  }
+
+  this.isInHighlightedRange = function( date ) {
+    return (
+      ( this.highlightedRangeStarts <= date ) &&
+      ( this.highlightedRangeEnds   >= date )
+    );
+  };
 }])
 
 .directive( 'datepicker', ['dateFilter', '$parse', 'datepickerConfig', '$log', function (dateFilter, $parse, datepickerConfig, $log) {
@@ -164,6 +175,21 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.position'])
           refill();
         });
       }
+      if ( attrs.highlightedRangeStarts && attrs.highlightedRangeEnds ) {
+        scope.$parent.$watch($parse(attrs.highlightedRangeStarts), function(value) {
+          datepickerCtrl.highlightedRangeStarts = value ? new Date(value) : null;
+          if ( datepickerCtrl.hasHighlightedRange()) {
+            refill();
+          }
+        });
+
+        scope.$parent.$watch($parse(attrs.highlightedRangeEnds), function(value) {
+          datepickerCtrl.highlightedRangeEnds = value ? new Date(value) : null;
+          if ( datepickerCtrl.hasHighlightedRange() ) {
+            refill();
+          }
+        });
+      }
 
       function updateShowWeekNumbers() {
         scope.showWeekNumbers = mode === 0 && showWeeks;
@@ -196,6 +222,9 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.position'])
         var currentMode = datepickerCtrl.modes[mode], data = currentMode.getVisibleDates(selected, date);
         angular.forEach(data.objects, function(obj) {
           obj.disabled = datepickerCtrl.isDisabled(obj.date, mode);
+          if ( datepickerCtrl.hasHighlightedRange() ) {
+            obj.inHighlightedRange = datepickerCtrl.isInHighlightedRange(obj.date);
+          }
         });
 
         ngModel.$setValidity('date-disabled', (!date || !datepickerCtrl.isDisabled(date)));
@@ -404,6 +433,8 @@ function ($compile, $parse, $document, $position, dateFilter, datepickerPopupCon
       }
       addWatchableAttribute(attrs.min, 'min');
       addWatchableAttribute(attrs.max, 'max');
+      addWatchableAttribute(attrs.highlightedRangeStarts, 'highlightedRangeStarts');
+      addWatchableAttribute(attrs.highlightedRangeEnds, 'highlightedRangeEnds');
       if (attrs.showWeeks) {
         addWatchableAttribute(attrs.showWeeks, 'showWeeks', 'show-weeks');
       } else {
